@@ -2,14 +2,15 @@ package internal
 
 import (
 	"encoding/json"
-	"github.com/aws/aws-sdk-go/service/sso"
-	"github.com/aws/aws-sdk-go/service/sso/ssoiface"
-	"github.com/aws/aws-sdk-go/service/ssooidc/ssooidciface"
-	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go/service/sso"
+	"github.com/aws/aws-sdk-go/service/sso/ssoiface"
+	"github.com/aws/aws-sdk-go/service/ssooidc/ssooidciface"
+	"github.com/urfave/cli/v2"
 )
 
 type LastUsageInformation struct {
@@ -32,7 +33,6 @@ func RefreshCredentials(oidcClient ssooidciface.SSOOIDCAPI, ssoClient ssoiface.S
 	var roleName *string
 
 	lui, err := readUsageInformation()
-	log.Printf("Attempting to refresh credentials for account [%s] with role [%s]", lui.AccountName, lui.Role)
 	if err != nil {
 		if strings.Contains(err.Error(), "no such file") {
 			log.Println("Nothing to refresh yet.")
@@ -43,6 +43,7 @@ func RefreshCredentials(oidcClient ssooidciface.SSOOIDCAPI, ssoClient ssoiface.S
 			SaveUsageInformation(accountInfo, roleInfo)
 		}
 	} else {
+		log.Printf("Attempting to refresh credentials for account [%s] with role [%s]", lui.AccountName, lui.Role)
 		accountId = &lui.AccountId
 		roleName = &lui.Role
 	}
@@ -51,8 +52,8 @@ func RefreshCredentials(oidcClient ssooidciface.SSOOIDCAPI, ssoClient ssoiface.S
 	roleCredentials, err := ssoClient.GetRoleCredentials(rci)
 	check(err)
 
-	template := ProcessPersistedCredentialsTemplate(roleCredentials, context.String("profile"))
-	WriteAWSCredentialsFile(template)
+	// template := ProcessPersistedCredentialsTemplate(roleCredentials, context.String("profile"))
+	// WriteAWSCredentialsFile(template)
 
 	log.Printf("Successful retrieved credentials for account: %s", *accountId)
 	log.Printf("Assumed role: %s", *roleName)

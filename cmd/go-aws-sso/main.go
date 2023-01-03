@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/aws/aws-sdk-go/service/sso"
 	"github.com/aws/aws-sdk-go/service/sso/ssoiface"
 	"github.com/aws/aws-sdk-go/service/ssooidc/ssooidciface"
 	. "github.com/theurichde/go-aws-sso/internal"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
-	"log"
-	"os"
-	"strings"
-	"time"
 )
 
 var (
@@ -21,7 +22,6 @@ var (
 )
 
 func main() {
-
 	initialFlags := []cli.Flag{
 		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    "start-url",
