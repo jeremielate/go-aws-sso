@@ -2,14 +2,14 @@ package internal
 
 import (
 	"flag"
+	"os"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/service/sso"
 	"github.com/aws/aws-sdk-go/service/sso/ssoiface"
 	"github.com/aws/aws-sdk-go/service/ssooidc"
 	"github.com/aws/aws-sdk-go/service/ssooidc/ssooidciface"
 	"github.com/urfave/cli/v2"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 type mockSSOOIDCClient struct {
@@ -95,7 +95,7 @@ func TestAssumeDirectly(t *testing.T) {
 
 	AssumeDirectly(oidcClient, ssoClient, ctx)
 
-	content, _ := ioutil.ReadFile(CredentialsFilePath)
+	content, _ := os.ReadFile(CredentialsFilePath)
 	defer os.RemoveAll(CredentialsFilePath)
 	got := string(content)
 	want := "[default]\naws_access_key_id = dummy_assume_directly\naws_secret_access_key = dummy_assume_directly\naws_session_token = dummy_assume_directly\noutput = json\nregion = eu-central-1\n"

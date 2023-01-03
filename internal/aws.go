@@ -2,6 +2,15 @@ package internal
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"os/exec"
+	"runtime"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -10,13 +19,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/sso/ssoiface"
 	"github.com/aws/aws-sdk-go/service/ssooidc"
 	"github.com/aws/aws-sdk-go/service/ssooidc/ssooidciface"
-	"log"
-	"os"
-	"os/exec"
-	"runtime"
-	"sort"
-	"strconv"
-	"time"
 )
 
 const grantType = "urn:ietf:params:oauth:grant-type:device_code"
@@ -77,10 +79,7 @@ func ClientInfoFileDestination() string {
 }
 
 func (ati ClientInformation) IsExpired() bool {
-	if ati.AccessTokenExpiresAt.Before(time.Now()) {
-		return true
-	}
-	return false
+	return ati.AccessTokenExpiresAt.Before(time.Now())
 }
 
 // ProcessClientInformation tries to read available ClientInformation.
@@ -105,8 +104,7 @@ func ProcessClientInformation(oidcClient ssooidciface.SSOOIDCAPI, startUrl strin
 func HandleOutdatedAccessToken(clientInformation ClientInformation, oidcClient ssooidciface.SSOOIDCAPI, startUrl string) ClientInformation {
 	registerClientOutput := ssooidc.RegisterClientOutput{ClientId: &clientInformation.ClientId, ClientSecret: &clientInformation.ClientSecret}
 	clientInformation.DeviceCode = *startDeviceAuthorization(oidcClient, &registerClientOutput, startUrl).DeviceCode
-	var clientInfoPointer *ClientInformation
-	clientInfoPointer = RetrieveToken(oidcClient, Time{}, &clientInformation)
+	clientInfoPointer := RetrieveToken(oidcClient, Time{}, &clientInformation)
 	WriteStructToFile(clientInfoPointer, ClientInfoFileDestination())
 	return *clientInfoPointer
 }
@@ -149,23 +147,36 @@ func startDeviceAuthorization(oidc ssooidciface.SSOOIDCAPI, rco *ssooidc.Registe
 	return *sdao
 }
 
+func IsWSL() bool {
+	b, err := os.ReadFile("/proc/version")
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	s := strings.ToLower(string(b))
+	return strings.Contains(s, "wsl")
+}
+
 func openUrlInBrowser(url string) {
 	var err error
 
 	switch runtime.GOOS {
 	case "linux":
-		fmt.Println(url)
+		if IsWSL() {
+			err = exec.Command("wslview", url).Run()
+		} else {
+			err = exec.Command("xdg-open", url).Run()
+		}
 	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Run()
 	case "darwin":
-		err = exec.Command("open", url).Start()
+		err = exec.Command("open", url).Run()
 	default:
 		err = fmt.Errorf("could not open %s - unsupported platform. Please open the URL manually", url)
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func RetrieveToken(client ssooidciface.SSOOIDCAPI, timer Timer, info *ClientInformation) *ClientInformation {

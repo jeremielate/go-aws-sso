@@ -1,9 +1,10 @@
 package internal
 
 import (
+	"strings"
+
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/manifoldco/promptui"
-	"strings"
 )
 
 type Prompt interface {
@@ -43,15 +44,9 @@ func fuzzySearchWithPrefixAnchor(itemsToSelect []string, linePrefix string) func
 		role := itemsToSelect[index]
 
 		if strings.HasPrefix(input, linePrefix) {
-			if strings.HasPrefix(role, input) {
-				return true
-			}
-			return false
+			return strings.HasPrefix(role, input)
 		} else {
-			if fuzzy.MatchFold(input, role) {
-				return true
-			}
+			return fuzzy.MatchFold(input, role)
 		}
-		return false
 	}
 }

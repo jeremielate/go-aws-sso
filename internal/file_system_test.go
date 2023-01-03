@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
@@ -56,7 +55,7 @@ func TestWriteClientInfoToFile(t *testing.T) {
 			}
 
 			got := ClientInformation{}
-			content, _ := ioutil.ReadFile(tt.args.dest)
+			content, _ := os.ReadFile(tt.args.dest)
 			err = json.Unmarshal(content, &got)
 			if err != nil {
 				t.Error(err)
