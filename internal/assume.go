@@ -2,13 +2,14 @@ package internal
 
 import (
 	"encoding/json"
+	"log"
+	"os"
+	"time"
+
 	"github.com/aws/aws-sdk-go/service/sso"
 	"github.com/aws/aws-sdk-go/service/sso/ssoiface"
 	"github.com/aws/aws-sdk-go/service/ssooidc/ssooidciface"
 	"github.com/urfave/cli/v2"
-	"log"
-	"os"
-	"time"
 )
 
 // AssumeDirectly
@@ -18,7 +19,11 @@ func AssumeDirectly(oidcClient ssooidciface.SSOOIDCAPI, ssoClient ssoiface.SSOAP
 	accountId := context.String("account-id")
 	roleName := context.String("role-name")
 	clientInformation, _ := ProcessClientInformation(oidcClient, startUrl)
-	rci := &sso.GetRoleCredentialsInput{AccountId: &accountId, RoleName: &roleName, AccessToken: &clientInformation.AccessToken}
+	rci := &sso.GetRoleCredentialsInput{
+		AccountId:   &accountId,
+		RoleName:    &roleName,
+		AccessToken: &clientInformation.AccessToken,
+	}
 	roleCredentials, err := ssoClient.GetRoleCredentials(rci)
 	check(err)
 

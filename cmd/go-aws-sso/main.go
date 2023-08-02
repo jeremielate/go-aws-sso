@@ -22,6 +22,7 @@ var (
 )
 
 func main() {
+	log.SetFlags(log.Llongfile)
 	initialFlags := []cli.Flag{
 		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    "start-url",
