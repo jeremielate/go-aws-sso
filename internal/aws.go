@@ -163,7 +163,7 @@ func openUrlInBrowser(url string) {
 	switch runtime.GOOS {
 	case "linux":
 		if IsWSL() {
-			err = exec.Command("wslview", url).Run()
+			exec.Command("wslview", url).Run()
 		} else {
 			err = exec.Command("xdg-open", url).Run()
 		}
